@@ -6,165 +6,149 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
+import { pdfjs } from 'react-pdf';
 
-import pdfToText from "react-pdftotext";
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+    import.meta.url
+).toString();
 
-interface ExtractedText {
-    index: number;
-  text: string | null; // or any other appropriate type for your text
-}
+const UploadPage = () => {
+    const [files, setFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const router = useRouter();
 
-export default function UploadPage() {
-  const [files, setFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
- 
-
-  const router = useRouter();
-
-//   function extractText(files: File[]) {
-//     files.forEach(async (file,index) => {
-//       pdfToText(file)
-//         .then((text) =>  extractedTexts.push({ index, text }))
-//         .catch((error) => {
-//           console.log("Failed to extract text from pdf", error);
-//           extractedTexts.push({index, text: null });
-//         });
-//     });
-//   }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      const uniqueNewFiles = newFiles.filter(
-        (newFile) =>
-          !files.some(
-            (existingFile) =>
-              existingFile.name === newFile.name &&
-              existingFile.size === newFile.size
-          )
-      );
-      if (uniqueNewFiles.length < newFiles.length) {
-      }
-      setFiles((prevFiles) => [...prevFiles, ...uniqueNewFiles]);
+    interface ExtractedText {
+        index: number;
+        text: string | null;
     }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (files.length === 0) return;
-
-    setUploading(true);
-
-    try {
-        let extractedTexts: ExtractedText[] = [];
-
-        const promises = files.map((file, index) => {
-            return pdfToText(file).then((text) => ({ index, text })).catch((error) => {
-              console.log("Failed to extract text from pdf", error);
-              return { index, text: null };
-            });
-          });
-          extractedTexts = await Promise.all(promises);
-     
-          
-      
-
-      const response = await fetch("/api/analyse", {
-        method: "POST",
-        body: JSON.stringify(extractedTexts),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
+    const extractTextFromPDF = async (file: File, index: number): Promise<ExtractedText> => {
+        const textContent: string[] = [];
         try {
-          const result = await response.json();
-        
-          
-          // Store the result in local storage
-          sessionStorage.setItem("analysisResults", JSON.stringify(result));
-          // Navigate to the results page
-          router.push("/results");
-        } catch (error) {
-          console.error("Failed to parse JSON response", error);
-        }
-      } else {
-        console.error("Failed to fetch results");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
+            const pdf = await pdfjs.getDocument(URL.createObjectURL(file)).promise;
+            const numPages = pdf.numPages;
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-amber-50 to-white text-gray-800">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
-        Upload Question Papers
-      </h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-md">
-        <div className="mb-4">
-          <Label htmlFor="file" className="text-gray-700">
-            Select PDF files
-          </Label>
-          <Input
-            id="file"
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            disabled={uploading}
-            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            multiple
-            ref={fileInputRef}
-          />
-        </div>
-        {files.length > 0 && (
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-2 text-gray-700">
-              Selected Files:
-            </h2>
-            <ul className="space-y-2">
-              {files.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 p-2 rounded"
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const content = await page.getTextContent();
+                const pageText = content.items.map((item: any) => item.str).join(' ');
+                textContent.push(pageText);
+            }
+
+            return { index, text: textContent.join('\n') };
+        } catch (error) {
+            console.error("Error extracting text:", error);
+            return { index, text: null };
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            const uniqueNewFiles = newFiles.filter(
+                (newFile) => !files.some(
+                    (existingFile) => existingFile.name === newFile.name && existingFile.size === newFile.size
+                )
+            );
+            setFiles((prevFiles) => [...prevFiles, ...uniqueNewFiles]);
+            setError(null); // Reset error on file selection
+        }
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Clear input field
+        }
+    };
+
+    const handleRemoveFile = (index: number) => {
+        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (files.length === 0) return;
+
+        setUploading(true);
+        setError(null); // Reset error before upload
+
+        try {
+            const extractedTexts: ExtractedText[] = await Promise.all(
+                files.map((file, index) => extractTextFromPDF(file, index))
+            );
+
+            const response = await fetch("/api/analyse", {
+                method: "POST",
+                body: JSON.stringify(extractedTexts),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                sessionStorage.setItem("analysisResults", JSON.stringify(result));
+                router.push("/results");
+            } else {
+                throw new Error("Failed to fetch results");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            setError("An error occurred during upload or analysis. Please try again.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-amber-50 to-white text-gray-800">
+            <h1 className="text-3xl font-bold mb-6 text-gray-800">Upload Question Papers</h1>
+            <form onSubmit={handleSubmit} className="w-full max-w-md">
+                <div className="mb-4">
+                    <Label htmlFor="file" className="text-gray-700">Select PDF files</Label>
+                    <Input
+                        id="file"
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        multiple
+                        ref={fileInputRef}
+                    />
+                </div>
+                {files.length > 0 && (
+                    <div className="mb-4">
+                        <h2 className="text-lg font-semibold mb-2 text-gray-700">Selected Files:</h2>
+                        <ul className="space-y-2">
+                            {files.map((file, index) => (
+                                <li key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded">
+                                    <span className="text-sm text-gray-600 truncate">{file.name}</span>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleRemoveFile(index)}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+                {error && <p className="text-red-500 mb-4">{error}</p>}
+                <Button
+                    type="submit"
+                    disabled={files.length === 0 || uploading}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold"
                 >
-                  <span className="text-sm text-gray-600 truncate">
-                    {file.name}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveFile(index)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <Button
-          type="submit"
-          disabled={files.length === 0 || uploading}
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold "
-        >
-          {uploading ? "Uploading..." : "Upload and Analyze"}
-        </Button>
-      </form>
-    </div>
-  );
-}
+                    {uploading ? "Uploading..." : "Upload and Analyze"}
+                </Button>
+            </form>
+        </div>
+    );
+};
+
+export default UploadPage;
