@@ -1,5 +1,5 @@
 "use client";
-
+import '../../polyfills'
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { pdfjs } from 'react-pdf';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
-    import.meta.url
-).toString();
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
 
 const UploadPage = () => {
     const [files, setFiles] = useState<File[]>([]);
