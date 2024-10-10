@@ -9,6 +9,10 @@ import { X } from "lucide-react";
 import { pdfjs } from 'react-pdf';
 
 
+
+
+
+
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
@@ -33,7 +37,13 @@ const UploadPage = () => {
             for (let pageNum = 1; pageNum <= numPages; pageNum++) {
                 const page = await pdf.getPage(pageNum);
                 const content = await page.getTextContent();
-                const pageText = content.items.map((item: any) => item.str).join(' ');
+                const pageText = content.items.map((item) => {
+                    if ('str' in item) {
+                      return item.str;
+                    } else {
+                      return ''; // or some other default value
+                    }
+                  }).join(' ');
                 textContent.push(pageText);
             }
 
