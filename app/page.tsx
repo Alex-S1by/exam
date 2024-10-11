@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ScrollText, TrendingUp, BookOpen } from 'lucide-react'
+import { ScrollText, TrendingUp, BookOpen,ArrowRight } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -8,7 +8,7 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 text-center">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold mb-4 sm:mb-6">Exam Essentials</h1>
         <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 font-light">
-          Unlock the power of your past exams and pave the way to academic success
+         Use the previous question papers to crack the exam.
         </p>
         
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
@@ -30,17 +30,17 @@ export default function Home() {
         </div>
         
         <p className="text-base sm:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto">
-          {`Upload your previous years question papers and harness the power of data-driven insights
-          Our advanced analysis tools will help you focus on what truly matters, 
-          giving you the edge in your exam preparation.`}
+          {`There is a higher probability of getting previously repeated questions in your next exam.
+          By analyzing past question papers, you can identify these frequently repeated questions.
+          This site helps you review your previous years' question papers.`}
         </p>
-        
         <Link href="/upload" className="inline-block">
-          <Button size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105 text-sm sm:text-base">
-            Begin Your Journey
+          <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 text-lg shadow-lg hover:shadow-xl">
+            Get started<ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
       </div>
+   
       
       <footer className="w-full text-center border-t border-gray-200 py-4 text-xs sm:text-sm text-gray-600">
         © {new Date().getFullYear()} Exam Essentials. All rights reserved.
