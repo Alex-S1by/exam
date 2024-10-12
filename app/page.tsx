@@ -10,8 +10,12 @@ export default function Home() {
         <p className="text-lg sm:text-xl lg:text-2xl mb-6 sm:mb-8 font-light">
          Use the previous question papers to crack the exam.
         </p>
-        
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
+         <Link href="/upload" className="inline-block">
+          <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 text-lg shadow-lg hover:shadow-xl">
+            Get started<ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="grid sm:grid-cols-2 pt-6 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
           <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
             <ScrollText className="w-10 h-10 sm:w-12 sm:h-12 mb-3 sm:mb-4 text-amber-600" />
             <h2 className="text-lg sm:text-xl font-semibold mb-2">Question Analysis</h2>
@@ -34,11 +38,7 @@ export default function Home() {
           By analyzing past question papers, you can identify these frequently repeated questions.
           This site helps you review your previous years' question papers.`}
         </p>
-        <Link href="/upload" className="inline-block">
-          <Button size="lg" className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 text-lg shadow-lg hover:shadow-xl">
-            Get started<ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </Link>
+       
       </div>
    
       
