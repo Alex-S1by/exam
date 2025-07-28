@@ -98,6 +98,8 @@ const UploadPage = () => {
                 files.map((file, index) => extractTextFromPDF(file, index))
             );
 
+            
+            sessionStorage.setItem("extractedtext", JSON.stringify(extractedTexts));
             const response = await fetch("/api/analyse", {
                 method: "POST",
                 body: JSON.stringify(extractedTexts),
@@ -110,6 +112,8 @@ const UploadPage = () => {
                 const result = await response.json();
                 sessionStorage.setItem("analysisResults", JSON.stringify(result));
                 router.push("/results");
+                console.log(result);
+                
             } else {
                 throw new Error("Failed to fetch results");
             }
